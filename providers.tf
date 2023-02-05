@@ -1,3 +1,14 @@
 provider "docker" {
-  host = "unix:///var/run/docker.sock"
+  host = var.docker_tcp_host
+}
+
+provider "docker-utils" {
+    host = var.docker_tcp_host
+}
+
+provider "random" {
+}
+
+provider "local" {
+  
 }

@@ -1,21 +1,41 @@
-resource "docker_image" "python_alpine" {
-  name = "nginx"
+resource "random_password" "ps" {
+  count = local.count
+  length = 5
+  special = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+resource "local_sensitive_file" "ps_file" {
+  filename = "${path.module}/ps.txt"
+  content = "${base64encode(join("\n", [ for k, v in local.passwords : "${docker_container.logins[k].network_data[0].ip_address} ${docker_container.logins[k].name} ${v}" ]))}"
+}
+
+resource "docker_image" "rvce-mca-lss-login" {
+  name = "srjnm/rvce-mca-lss-login:v4"
 }
 
 resource "docker_container" "logins" {
   count = local.count
   name = "1RV22MC${format("%03s", count.index + 1)}"
 
-  image = docker_image.python_alpine.image_id
+  image = docker_image.rvce-mca-lss-login.image_id
+
+  entrypoint = ["tail", "-f", "/dev/null"]
 
   ports {
-    internal = 80
-    external = 3000
+    internal = 22
+    external = 22
   }
 
   networks_advanced {
     name = docker_network.macvlan.id
   }
+}
+
+resource "docker-utils_exec" "exec" {
+    count = length(docker_container.logins)
+    container_name = "1RV22MC${format("%03s", count.index + 1)}"
+    commands = ["/bin/bash", "-c", "useradd -s /bin/bash -p $(mkpasswd --hash=SHA-512 '${local.passwords[count.index]}') -m 1RV22MC${format("%03s", count.index + 1)} && usermod -aG sudo 1RV22MC${format("%03s", count.index + 1)} && service ssh start"]
 }
 
 resource "docker_network" "macvlan" {
@@ -26,6 +46,7 @@ resource "docker_network" "macvlan" {
     gateway = var.network.gateway
     subnet = var.network.subnet
     ip_range = var.network.ip_range
+    aux_address = var.network.aux_address
   }
 
   options = {

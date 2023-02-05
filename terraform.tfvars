@@ -4,6 +4,9 @@ network = {
   ip_range = "172.16.3.128/25"
   subnet = "172.16.2.0/23"
   interface = "ens160"
+  aux_address = {
+    "host": "172.16.3.253"
+  }
 }
 
 # local
@@ -13,3 +16,5 @@ network = {
 #   subnet = "192.168.1.0/24"
   # interface = "wlp1s0"
 # }
+
+docker_tcp_host = "unix:///var/run/docker.sock"
