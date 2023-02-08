@@ -7,11 +7,12 @@ resource "random_password" "ps" {
 
 resource "local_sensitive_file" "ps_file" {
   filename = "${path.module}/ps.txt"
-  content = "${base64encode(join("\n", [ for k, v in local.passwords : "${docker_container.logins[k].network_data[0].ip_address} ${docker_container.logins[k].name} ${v}" ]))}"
+  file_permission = "777"
+  content = "${base64encode(join("\n", concat(["usn ip ps"], [ for k, v in local.passwords : "${docker_container.logins[k].name} ${docker_container.logins[k].network_data[0].ip_address} ${v}" ])))}"
 }
 
 resource "docker_image" "rvce-mca-lss-login" {
-  name = "srjnm/rvce-mca-lss-login:v4"
+  name = "srjnm/rvce-mca-lss-login:v5"
 }
 
 resource "docker_container" "logins" {
@@ -19,7 +20,7 @@ resource "docker_container" "logins" {
   name = "1RV22MC${format("%03s", count.index + 1)}"
 
   image = docker_image.rvce-mca-lss-login.image_id
-
+  memory = 512
   entrypoint = ["tail", "-f", "/dev/null"]
 
   ports {

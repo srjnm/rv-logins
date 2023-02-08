@@ -2,7 +2,7 @@
 network = {
   gateway = "172.16.3.254"
   ip_range = "172.16.3.128/25"
-  subnet = "172.16.2.0/23"
+  subnet = "172.16.2.133/23"
   interface = "ens160"
   aux_address = {
     "host": "172.16.3.253"
